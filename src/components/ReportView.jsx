@@ -39,14 +39,59 @@ export function ReportView({ report, onReset }) {
         </Card>
         <Card>
            <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Offline Capability</h3>
-           <div style={{ fontSize: '1.2rem', fontWeight: '600', color: offline.status === 'Offline-Capable' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
+           <div style={{ fontSize: '1.2rem', fontWeight: '600', color: offline.status === 'Offline-Capable' ? 'var(--accent-primary)' : (offline.status === 'Partially Offline' ? '#f59e0b' : 'var(--text-secondary)') }}>
              {offline.status}
            </div>
            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
              {offline.reason}
            </p>
+           {/* Offline Evidence Table */}
+           {offline.evidence && offline.evidence.length > 0 && (
+               <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.5rem' }}>
+                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>DETECTED SIGNALS</div>
+                   {offline.evidence.slice(0, 5).map((ev, i) => (
+                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                           <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{ev.signal}</span>
+                           <span style={{ color: 'var(--text-secondary)' }}>{ev.file.split('/').pop()}</span>
+                       </div>
+                   ))}
+                   {offline.evidence.length > 5 && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>+ {offline.evidence.length - 5} more...</div>}
+               </div>
+           )}
         </Card>
       </div>
+
+      {/* Human Review Traceability (New) */}
+      {score.label === 'Human Review Required' && (
+        <Card style={{ marginBottom: '2rem', border: '1px solid #eab308' }}>
+           <h3 style={{ color: '#eab308', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+             ⚠️ Ambiguity Traceability
+           </h3>
+           <p style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
+             The analyzer detected generic network usage but found no specific centralized API or local-first persistence. 
+             <strong>Manual Verified Required for:</strong>
+           </p>
+           
+           {/* Filter findings for generic network calls */}
+           <div style={{ background: 'rgba(234, 179, 8, 0.1)', padding: '1rem', borderRadius: '8px' }}>
+              {evidence.filter(e => e.signal.includes('Generic Network')).length > 0 ? (
+                  evidence.filter(e => e.signal.includes('Generic Network')).map((item, i) => (
+                    <div key={i} style={{ marginBottom: '0.5rem', fontFamily: 'monospace', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                        <span style={{ color: '#eab308' }}>[Line {item.failureMode.match(/line (\d+)/)?.[1] || '?'}]</span> 
+                        {' '}{item.failureMode.split('.')[0]} 
+                        <span style={{ color: 'var(--text-secondary)' }}> ({item.source})</span>
+                    </div>
+                  ))
+              ) : (
+                  <div style={{ color: 'var(--text-secondary)' }}>No specific files flagged (Check overall architecture).</div>
+              )}
+           </div>
+
+           <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Guidance: Check these lines. If they call a self-hosted URL or are wrapped in a Try-Catch with local fallback, this may be safe.
+           </p>
+        </Card>
+      )}
 
       {/* Evidence Log (The Core Fix) */}
       <Card style={{ marginBottom: '2rem' }}>
@@ -80,8 +125,12 @@ export function ReportView({ report, onReset }) {
                         {item.source}
                      </td>
                      <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-primary)' }}>{item.category}</td>
-                     <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-primary)', fontFamily: 'monospace' }}>{item.signal}</td>
-                     <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-secondary)', maxWidth: '300px' }}>{item.failureMode}</td>
+                     <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                        {item.signal}
+                     </td>
+                     <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-secondary)', maxWidth: '300px' }}>
+                        {item.failureMode}
+                     </td>
                   </tr>
                 ))}
               </tbody>

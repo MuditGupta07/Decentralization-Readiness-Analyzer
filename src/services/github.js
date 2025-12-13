@@ -71,9 +71,20 @@ class GitHubService {
   // Fetches directly from raw.githubusercontent.com
   async getRawFile(owner, repo, path, branch = 'HEAD') {
     try {
-        // Strategy: Try standard branches if specific branch not provided
-        const branches = [branch, 'main', 'master'];
-        
+        // Optimization: If a specific branch is provided (not HEAD), try ONLY that branch first.
+        // This prevents 404 console spam from checking 'main'/'master' blindly when we already know the correct branch.
+        if (branch && branch !== 'HEAD') {
+             const res = await fetch(`${RAW_BASE_URL}/${owner}/${repo}/${branch}/${path}`);
+             if (res.ok) {
+                 return await res.text();
+             }
+             // If specific branch failed, real 404. Don't fallback to main/master unless we really suspect it's wrong.
+             // Given analyzer passes repoInfo.default_branch, we trust it.
+             return null;
+        }
+
+        // Fallback Strategy (only for HEAD or undefined)
+        const branches = ['main', 'master'];
         for (const b of branches) {
             const res = await fetch(`${RAW_BASE_URL}/${owner}/${repo}/${b}/${path}`);
             if (res.ok) {
@@ -82,9 +93,20 @@ class GitHubService {
         }
         return null;
     } catch (error) {
-        console.error(`Error fetching raw ${path}:`, error);
+        // Suppress console error for 404s to keep logs clean
+        // console.error(`Error fetching raw ${path}:`, error);
         return null;
     }
+  }
+  async getAbsoluteRaw(url) {
+      if (!url) return null;
+      try {
+          const res = await fetch(url);
+          if (res.ok) return await res.text();
+          return null;
+      } catch (e) {
+          return null;
+      }
   }
 }
 

@@ -1,20 +1,43 @@
 /**
  * Decentralization Heuristics (Advanced)
  * 
+ * PHILOSOPHY:
+ * - Evidence-Based: No guessing. Every finding must point to a specific file/line.
+ * - Deterministic: Same input = same output. No AI probability.
+ * - Conservative: Prefer "Unknown" over false assurance.
+ * 
  * Rules:
  * - Risks are categorized by type (Critical, Hosting, Vendor, etc.)
  * - Each risk has a specific failure mode explanation.
  */
 
+export const OFFLINE_SIGNALS = {
+  PERSISTENCE: ['indexedDB', 'idb', 'localforage', 'dexie', 'rxdb', 'pouchdb', 'watermelondb', 'sqlite-wasm', 'absurd-sql'],
+  CACHING: ['serviceWorker', 'sw-precache', 'workbox', 'vite-plugin-pwa', 'next-pwa', 'caches.open'],
+  INTENT: ['navigator.onLine', 'window.addEventListener("offline")', 'backgroundSync', 'periodicSync'],
+  NATIVE: ['tauri', 'electron-store', 'react-native-fs', 'capacitor', 'cordova']
+};
+
 export const RISKS = {
-  // --- Critical Infrastructure (High Risk) ---
+  // --- Generic Network Signals ---
+  'GENERIC_NETWORK': {
+    id: 'generic-network',
+    category: 'External Service',
+    riskLevel: 'Medium',
+    reason: 'Generic HTTP Client detected (fetch/axios).',
+    failureMode: 'Project makes network calls. Centralization unknown without runtime verification.'
+  },
+
   'firebase': { 
     id: 'firebase',
     category: 'Critical Infrastructure', 
     riskLevel: 'High', 
     reason: 'Relies on Google-hosted proprietary backend services (Auth/DB/Hosting).',
-    failureMode: 'If Google limits the project or the service goes down, the application completely stops working. Data is locked in proprietary format.' 
+    failureMode: 'If Google limits the project or the service goes down, the application completely stops working.' 
   },
+  // ... (previous deps mostly same, saving space if possible, but replace tool needs full logic if overwriting block) ...
+  // actually I should only overwrite the specific blocks or the whole file. I will overwrite the config section particularly.
+
   '@firebase/app': { 
     id: 'firebase',
     category: 'Critical Infrastructure', 
@@ -27,13 +50,13 @@ export const RISKS = {
     category: 'Critical Infrastructure', 
     riskLevel: 'High', 
     reason: 'Firebase CLI indicates deployment/management via Firebase.',
-    failureMode: 'Binding to specific proprietary infrastructure tools.'
+    failureMode: 'infra-as-code binding to Firebase.'
   },
   'aws-sdk': { 
     id: 'aws-sdk',
     category: 'Critical Infrastructure', 
     riskLevel: 'High', 
-    reason: 'Hard dependency on Amazon Web Services (S3, Lambda, DynamoDB).',
+    reason: 'Hard dependency on Amazon Web Services.',
     failureMode: 'Vendor lock-in. Migration requires rewriting core logic.' 
   },
   'contentful': { 
@@ -41,7 +64,7 @@ export const RISKS = {
     category: 'Critical Infrastructure', 
     riskLevel: 'High', 
     reason: 'Headless CMS hosted by Contentful.',
-    failureMode: 'Content vanishes if API fails or payment stops. No local fallback possible.' 
+    failureMode: 'Content vanishes if API fails or payment stops.' 
   },
   'sanity': { 
     id: 'sanity',
@@ -57,14 +80,14 @@ export const RISKS = {
     category: 'Traditional Server', 
     riskLevel: 'High', 
     reason: 'Monolithic PHP Server Architecture.',
-    failureMode: 'Single Server (SPoF). If the server crashes, the site is gone. Not censorship-resistant or peer-to-peer.' 
+    failureMode: 'Single Server (SPoF). If the server crashes, the site is gone.' 
   },
   'laravel/framework': { 
     id: 'laravel',
     category: 'Traditional Server', 
     riskLevel: 'High', 
     reason: 'PHP Backend Framework.',
-    failureMode: 'Requires always-on trusted server. Vulnerable to seizure or centralized ddos.' 
+    failureMode: 'Requires always-on trusted server.' 
   },
   'django': { 
     id: 'django',
@@ -78,23 +101,30 @@ export const RISKS = {
     category: 'Traditional Server',
     riskLevel: 'High',
     reason: 'Node.js Backend Framework.',
-    failureMode: 'Implies a centralized server API. Failure turns off the backend.'
+    failureMode: 'Implies a centralized server API.'
   },
 
-  // --- Hosting Dependency (Medium/High) ---
+  // --- Hosting Dependency (Medium/High) - MITIGATED ---
   'vercel.json': {
     id: 'vercel',
     category: 'Hosting Dependency',
     riskLevel: 'Medium',
     reason: 'Optimized for Vercel Cloud Platform.',
-    failureMode: 'Project likely relies on Vercel-specific serverless functions or edge config.'
+    failureMode: 'Project likely relies on Vercel-specific serverless functions. (Check if Dev-Only)'
   },
   'netlify.toml': {
     id: 'netlify',
     category: 'Hosting Dependency',
     riskLevel: 'Medium',
     reason: 'Optimized for Netlify Cloud Platform.',
-    failureMode: 'Project likely relies on Netlify-specific redirects, functions, or forms.'
+    failureMode: 'Project likely relies on Netlify-specific redirects/forms. (Check if Dev-Only)'
+  },
+  'docker-compose.yml': {
+    id: 'docker',
+    category: 'Infrastructure Config',
+    riskLevel: 'Medium',
+    reason: 'Docker Orchestration Config.',
+    failureMode: 'Implies complex server requirements. May be Dev-Only, but verification required.'
   },
     
   // --- Vendor Lock-in (Medium/High Risk) ---
