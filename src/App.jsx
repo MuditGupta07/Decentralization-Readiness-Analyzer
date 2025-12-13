@@ -4,7 +4,6 @@ import { Card } from './components/Card';
 import { Input } from './components/Input';
 import { ReportView } from './components/ReportView';
 import { analyzerService } from './services/analyzer';
-import { githubService } from './services/github';
 
 const PRELOADED_EXAMPLES = [
   { name: 'Firebase Chat (Risky)', url: 'https://github.com/firebase/quickstart-js' },
@@ -17,20 +16,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [report, setReport] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
-  // Load token from localStorage if available
-  const [token, setToken] = useState(() => localStorage.getItem('github_token') || '');
-
-  // Set initial token in service if it exists
-  if (token) {
-    githubService.setToken(token);
-  }
-
-  const handleTokenChange = (t) => {
-    setToken(t);
-    localStorage.setItem('github_token', t);
-    githubService.setToken(t);
-  };
 
   const handleAnalyze = async (repoUrl) => {
     const targetUrl = repoUrl || url;
@@ -38,11 +23,13 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setReport(null);
+
     try {
       const result = await analyzerService.analyzeRepo(targetUrl);
       setReport(result);
     } catch (err) {
-      setError(err.message || 'Failed to analyze repository. Check URL or Rate Limit.');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -55,15 +42,7 @@ function App() {
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '4rem' }}>
-      <header style={{ padding: '4rem 0 2rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }} className="text-gradient">
-          Decentralization Readiness Analyzer
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
-          Evaluate open-source projects for hidden centralization risks and unstoppability.
-        </p>
-      </header>
+    <div className="container" style={{ padding: '2rem' }}>
       
       <main>
         {report ? (
@@ -71,35 +50,21 @@ function App() {
         ) : (
           <div className="fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
             
-            <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
-               <button 
-                 onClick={() => setShowSettings(!showSettings)}
-                 style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'underline' }}
-               >
-                 {showSettings ? 'Hide Settings' : 'Add GitHub Token (Optional)'}
-               </button>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+             <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem', background: 'linear-gradient(to right, var(--text-primary), var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+               Decentralization Readiness Analyzer
+             </h1>
+             <p style={{ color: 'var(--text-secondary)' }}>
+               Evaluate the architectural resilience of any open source project.
+             </p>
             </div>
 
-            {showSettings && (
-              <Card style={{ marginBottom: '2rem', border: '1px solid var(--accent-warn)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: '600', color: 'var(--accent-warn)', fontSize: '0.9rem' }}>
-                    GitHub Personal Access Token (PAT)
-                  </label>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Required if you are hitting API rate limits (403 Errors).
-                  </p>
-                  <Input 
-                    value={token} 
-                    onChange={(e) => handleTokenChange(e.target.value)} 
-                    placeholder="ghp_xxxxxxxxxxxx" 
-                    type="password"
-                  />
-                </div>
-              </Card>
-            )}
-
             <Card style={{ marginBottom: '2rem' }}>
+             <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', borderLeft: '3px solid var(--accent-primary)' }}>
+               <strong>Privacy First:</strong> This tool is 100% serverless and does not require GitHub authentication. Analysis is performed using public data only.
+             </div>
+
+             <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
               <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
                 <label style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                   GitHub Repository URL
@@ -120,6 +85,7 @@ function App() {
                   </div>
                 )}
               </div>
+            </div>
             </Card>
 
             <div style={{ textAlign: 'center' }}>

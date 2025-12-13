@@ -1,11 +1,9 @@
 /**
- * Decentralization Heuristics (Hardened)
+ * Decentralization Heuristics (Advanced)
  * 
- * Rules must be EVIDENCE-BASED.
- * Risks are categorized by: 
- * - Critical Infrastructure: Stops the app from working entirely.
- * - Vendor Lock-in: Hard to replace.
- * - Operational Dependency: Analytics, Logging, etc.
+ * Rules:
+ * - Risks are categorized by type (Critical, Hosting, Vendor, etc.)
+ * - Each risk has a specific failure mode explanation.
  */
 
 export const RISKS = {
@@ -75,25 +73,48 @@ export const RISKS = {
     reason: 'Python Backend Framework.',
     failureMode: 'Centralized logic/database. Not distributed.' 
   },
+  'express': {
+    id: 'express',
+    category: 'Traditional Server',
+    riskLevel: 'High',
+    reason: 'Node.js Backend Framework.',
+    failureMode: 'Implies a centralized server API. Failure turns off the backend.'
+  },
 
+  // --- Hosting Dependency (Medium/High) ---
+  'vercel.json': {
+    id: 'vercel',
+    category: 'Hosting Dependency',
+    riskLevel: 'Medium',
+    reason: 'Optimized for Vercel Cloud Platform.',
+    failureMode: 'Project likely relies on Vercel-specific serverless functions or edge config.'
+  },
+  'netlify.toml': {
+    id: 'netlify',
+    category: 'Hosting Dependency',
+    riskLevel: 'Medium',
+    reason: 'Optimized for Netlify Cloud Platform.',
+    failureMode: 'Project likely relies on Netlify-specific redirects, functions, or forms.'
+  },
+    
   // --- Vendor Lock-in (Medium/High Risk) ---
   '@auth0/auth0-react': { 
     id: 'auth0',
-    category: 'Vendor Lock-in', 
+    category: 'Identity Dependency', 
     riskLevel: 'High', 
     reason: 'Identity as a Service (Auth0).',
     failureMode: 'Users cannot log in if Auth0 is down. Identity data is not owned by the user.' 
   },
   '@clerk/clerk-react': { 
     id: 'clerk',
-    category: 'Vendor Lock-in', 
+    category: 'Identity Dependency', 
     riskLevel: 'High', 
     reason: 'Proprietary Auth Provider.',
     failureMode: 'User identity siloed in Clerk servers.' 
   },
   '@supabase/supabase-js': { 
     id: 'supabase',
-    category: 'Vendor Lock-in', 
+    category: 'Data Dependency', 
     riskLevel: 'Medium', 
     reason: 'Supabase (Managed Postgres/Auth).',
     failureMode: 'While open-source compatible, usually deployed as a hosted monolith. Migration is easier than Firebase but still non-trivial.' 

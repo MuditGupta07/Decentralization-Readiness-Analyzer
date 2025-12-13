@@ -62,6 +62,7 @@ export function ReportView({ report, onReset }) {
               <thead>
                 <tr style={{ color: 'var(--text-secondary)', textAlign: 'left', borderBottom: '1px solid var(--border-subtle)' }}>
                    <th style={{ padding: '0.5rem' }}>Risk Level</th>
+                   <th style={{ padding: '0.5rem' }}>Source / Confidence</th>
                    <th style={{ padding: '0.5rem' }}>Category</th>
                    <th style={{ padding: '0.5rem' }}>Signal Found</th>
                    <th style={{ padding: '0.5rem' }}>Failure Mode Explanation</th>
@@ -74,6 +75,9 @@ export function ReportView({ report, onReset }) {
                         <Badge color={item.risk === 'High' ? 'var(--accent-risk)' : 'var(--accent-warn)'}>
                           {item.risk}
                         </Badge>
+                     </td>
+                     <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        {item.source}
                      </td>
                      <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-primary)' }}>{item.category}</td>
                      <td style={{ padding: '0.75rem 0.5rem', color: 'var(--text-primary)', fontFamily: 'monospace' }}>{item.signal}</td>
