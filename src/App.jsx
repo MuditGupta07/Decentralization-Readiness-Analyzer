@@ -112,7 +112,7 @@ function App() {
                <span className="text-neon animate-pulse-glow">Truth.</span>
              </h2>
              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto', lineHeight: '1.8' }}>
-               Advanced static analysis to detect centralization bottlenecks.
+               If decentralization is the claim, DecentraLens is the proof
              </p>
             </div>
 
