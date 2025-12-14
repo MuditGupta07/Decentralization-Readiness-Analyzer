@@ -80,7 +80,7 @@ function App() {
         padding: '1.5rem 0',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-           <img src="/logo.png" alt="DecentraLens Logo" style={{ width: '40px', height: '40px', objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--neon-glow-primary))' }} />
+           <img src={`${import.meta.env.BASE_URL}logo.png`} alt="DecentraLens Logo" style={{ width: '40px', height: '40px', objectFit: 'contain', filter: 'drop-shadow(0 0 8px var(--neon-glow-primary))' }} />
            <h1 style={{ fontSize: '1.25rem', letterSpacing: '0.1em', fontWeight: '400', color: 'var(--text-primary)', marginLeft: '0.5rem', textTransform: 'uppercase' }}>
              Decentra<strong style={{ color: 'var(--neon-primary)' }}>Lens</strong>
            </h1>
