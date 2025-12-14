@@ -1,36 +1,48 @@
-import React from 'react';
-
-export function Button({ onClick, children, variant = 'primary', disabled = false, style={} }) {
-  const baseStyle = {
-    padding: '0.75rem 1.5rem',
-    borderRadius: '8px',
-    border: 'none',
-    fontSize: '1rem',
-    fontWeight: '600',
-    transition: 'all 0.2s ease',
-    opacity: disabled ? 0.6 : 1,
-    ...style
-  };
-
-  const variants = {
-    primary: {
-      backgroundColor: 'var(--text-primary)',
-      color: 'var(--bg-app)',
-    },
-    outline: {
-      backgroundColor: 'transparent',
-      border: '1px solid var(--border-subtle)',
-      color: 'var(--text-primary)',
-    }
-  };
-
+export const Button = ({ children, onClick, variant = 'primary', disabled, style }) => {
+  const isPrimary = variant === 'primary';
+  
   return (
-    <button 
-      onClick={onClick} 
+    <button
+      onClick={onClick}
       disabled={disabled}
-      style={{ ...baseStyle, ...variants[variant] }}
+      style={{
+        padding: '0.8rem 1.75rem',
+        borderRadius: '8px', 
+        border: isPrimary ? 'none' : '1px solid var(--border-glass)',
+        background: isPrimary 
+          ? 'var(--neon-primary)' 
+          : 'rgba(255,255,255,0.02)',
+        color: isPrimary ? '#000' : 'var(--text-primary)', 
+        fontWeight: '700',
+        fontSize: '0.9rem',
+        letterSpacing: '0.02em',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        boxShadow: isPrimary ? '0 0 20px rgba(0, 255, 157, 0.3)' : 'none',
+        textTransform: 'uppercase',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        ...style
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled && isPrimary) e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 255, 157, 0.6)';
+        if (!disabled && !isPrimary) {
+           e.currentTarget.style.borderColor = 'var(--text-primary)';
+           e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled && isPrimary) e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 157, 0.3)';
+        if (!disabled && !isPrimary) {
+           e.currentTarget.style.borderColor = 'var(--border-glass)';
+           e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+        }
+      }}
     >
       {children}
     </button>
   );
-}
+};

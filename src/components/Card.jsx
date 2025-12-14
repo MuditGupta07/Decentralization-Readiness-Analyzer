@@ -1,16 +1,13 @@
-import React from 'react';
-
-export function Card({ children, className = '', style = {} }) {
+export const Card = ({ children, style = {}, className = '' }) => {
   return (
     <div 
-      className={`glass-panel ${className}`} 
-      style={{ 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
-        ...style 
+      className={`glass-card ${className}`}
+      style={{
+        padding: '2rem',
+        ...style
       }}
     >
       {children}
     </div>
   );
-}
+};

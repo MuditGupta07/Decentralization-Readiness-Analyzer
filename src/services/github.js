@@ -108,6 +108,62 @@ class GitHubService {
           return null;
       }
   }
+
+  // --- DataProvider Interface compliance ---
+  async getProjectDetails(owner, repo) {
+      // If called without args (legacy), it fails, but Analyzer calls it with args in Online mode.
+      // For the unified interface, we might need a wrapper.
+      // But actually, the Analyzer will instantiate the provider.
+      // If we use GitHubService as a singleton, we need to pass args.
+      // In Refactor: Analyzer will call `provider.getProjectDetails()`? No.
+      // Online mode still needs owner/repo state.
+      // So strictly speaking, `getProjectDetails` in `github.js` takes args, 
+      // but `fileSystem.js` takes none (stateful).
+      // We will handle this difference in the Analyzer.
+      return this.getRepoDetails(owner, repo);
+  }
+
+  async getFileContent(path, owner, repo, branch) {
+      // Wrapper for getRawFile
+      return this.getRawFile(owner, repo, path, branch);
+  }
+
+  /**
+   * HUGE OPTIMIZATION: Get the entire file tree in 1 API call.
+   * Eliminates 404s and drastically reduces rate limit usage.
+   */
+  async getTree(owner, repo, branch = 'main') {
+      try {
+          // Get the SHA of the branch first, or just try fetching tree/main?
+          // Using trees/{branch}?recursive=1 works if branch name is valid ref.
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
+          
+           if (!res.ok) {
+               if (res.status === 403 || res.status === 429) {
+                 return { rateLimited: true, items: [] };
+               }
+               // Fallback: branch might be 'master' if 'main' failed? 
+               // analyzer handles branch detection, so we assume passed branch is correct-ish.
+               return null;
+           }
+           
+           const data = await res.json();
+           if (data.truncated) {
+               console.warn('Repo too large, tree truncated. Some files may be missed.');
+           }
+           
+           // Convert to standardized format
+           return data.tree.map(item => ({
+               path: item.path, // Full path e.g. "src/components/Button.jsx"
+               type: item.type === 'blob' ? 'file' : 'dir',
+               size: item.size
+           }));
+
+      } catch (e) {
+          console.error('Tree Fetch Failed:', e);
+          return null;
+      }
+  }
 }
 
 export const githubService = new GitHubService();
